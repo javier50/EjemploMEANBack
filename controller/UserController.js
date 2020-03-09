@@ -37,29 +37,60 @@ function save(req, res){
 							if(!err){
 								if(userStored){
 									console.log('userStored:' + userStored);
-									res.status(200).send({message: 'Se ha guardado el registro'});
+									res.status(200).send({
+										message: 'Se ha guardado el registro',
+										user: userStored
+									});
 								} else {
 									res.status(500).send({message: 'No se guardo el registro'});
 								}
 							} else {
-								console.log('err:' + err);
-								res.status(error.response.status);
-								res.send(error.message);
+								console.error(err.stack || err);
+								res.status(err.response.status);
+								res.send(err.message);
 							}
 						});
 					} else {
-					  res.status(error.response.status);
-					  res.send(error.message);
+						console.error(err.stack || err);
+						res.status(err.response.status);
+						res.send(err.message);
 					}
 				});
 			} else {
-				res.status(error.response.status)
-				res.send(error.message);
+				console.error(err.stack || err);
+				res.status(err.response.status)
+				res.send(err.message);
 			}
 		});
 	}
 }
 
+
+function update(req, res){
+	var userId = req.params.id;
+	var params = req.body;
+	
+	if(!userId){
+		res.status(500).send({message: 'falta el Id del usuario'});
+	}
+		
+	User.findByIdAndUpdate(userId, params, {}, function(err, userUpdated){
+		if(!err){
+			if(userUpdated){
+				res.status(200).send({userOld: userUpdated});
+			} else {
+				console.log(userUpdated);
+				res.status(500).send({message: 'No se ha podido actualizar el registro'});
+			}			
+		} else {
+			console.error(err.stack || err);
+			res.status(500).send({message: 'Error al actualizar datos'});
+		}
+	});
+}
+
+
 module.exports = {
-	save
+	save,
+	update
 };
