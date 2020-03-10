@@ -1,3 +1,6 @@
+# Directorios donde se suben archivos
+uploads/
+
 # Logs
 logs
 *.log
