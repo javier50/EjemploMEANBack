@@ -3,83 +3,51 @@
 var fs = require('fs'); // FileSystem
 var path = require('path'); // Facilita el acceso a rutas concretas
 var bcrypt = require('bcryptjs');
-var User = require('../model/User');
+var Artist = require('../model/Artist');
 var constants = require('../util/Constants');
 
 function save(req, res){
-	var user = new User();
+	var artist = new Artist();
 	var params = req.body;
 	
-	if(!params.password){
-		res.status(400).send({
-			message: 'Introduce la contraseña'
-		});
-	} else if(!params.name && !params.surname){
-		res.status(400).send({
-			message: 'Introducir los campos necesarios'
-		});
-	} else {
-		console.log(params);
-		user.name = params.name;
-		user.surname = params.surname;
-		user.email = params.email;
-		//user.password = params.password;
-		user.role = 'ROLE_USER';
-		user.image = 'null';
-		
-		console.log('generate a salt...');
-		bcrypt.genSalt(10, function(err, salt) {
-			if (!err) {
-				console.log('generate hash...');
-				bcrypt.hash(params.password, salt, function(error, hash) {
-					if (!error) {
-						console.log('hash: ' + hash);
-						user.password = hash;
-						
-						user.save((err, userStored) => {
-							if(!err){
-								if(userStored){
-									console.log('userStored:' + userStored);
-									res.status(200).send({
-										message: 'Se ha guardado el registro',
-										user: userStored
-									});
-								} else {
-									res.status(500).send({message: 'No se guardo el registro'});
-								}
-							} else {
-								console.error(err.stack || err);
-								res.status(err.response.status);
-								res.send(err.message);
-							}
-						});
-					} else {
-						console.error(err.stack || err);
-						res.status(err.response.status);
-						res.send(err.message);
-					}
+	if(!params.name){
+		return res.status(200).send({message: 'Introducir los campos necesarios'});
+	}
+	
+	artist.name = params.name;
+	artist.description = params.description;
+	artist.image = 'null';
+	artist.save((err, artistStored) => {
+		if(!err){
+			if(artistStored){
+				console.log('artistStored:' + artistStored);
+				res.status(200).send({
+					message: 'Se ha guardado el registro',
+					artist: artistStored
 				});
 			} else {
-				console.error(err.stack || err);
-				res.status(err.response.status)
-				res.send(err.message);
+				res.status(500).send({message: 'No se guardo el registro'});
 			}
-		});
-	}
+		} else {
+			console.error(err.stack || err);
+			res.status(err.response.status);
+			res.send(err.message);
+		}
+	});
 }
 
 function update(req, res){
-	var userId = req.params.id;
+	var artistId = req.params.id;
 	var params = req.body;
 	
-	if(!userId){
+	if(!artistId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
 		
-	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
+	Artist.findByIdAndUpdate(artistId, params, function(err, artistUpdated){
 		if(!err){
-			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+			if(artistUpdated){
+				res.status(200).send({artistOld: artistUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
 			}			
@@ -92,7 +60,7 @@ function update(req, res){
 
 function uploadImage(req, res){
 	console.log(req.files);
-	var userId = req.params.id;
+	var artistId = req.params.id;
 	
 	if(!req.files){
 		return res.status(400).send({message: 'No ha cargado ningún archivo'});
@@ -116,12 +84,12 @@ function uploadImage(req, res){
 		return res.status(400).send({message: 'No es un archivo valido'});
 	}
 	
-	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
+	Artist.findByIdAndUpdate(artistId, params, function(err, artistUpdated){
 		if(!err){
-			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+			if(artistUpdated){
+				res.status(200).send({artistOld: artistUpdated});
 			} else {
-				console.log(userUpdated);
+				console.log(artistUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});
 			}			
 		} else {
@@ -132,16 +100,16 @@ function uploadImage(req, res){
 }
 
 function getById(req, res){
-	var userId = req.params.id;
+	var artistId = req.params.id;
 	
-	if(!userId){
+	if(!artistId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
 		
-	User.findById(userId, function(err, userStored){
+	Artist.findById(artistId, function(err, artistStored){
 		if(!err){
-			if(userStored){
-				res.status(200).send({user: userStored});
+			if(artistStored){
+				res.status(200).send({artist: artistStored});
 			} else {
 				res.status(200).send({message: 'No se ha podido recuperar el registro'});
 			}			
@@ -159,9 +127,10 @@ function getAll(req, res){
 		page = 1;
 	}
 	
-	User.paginate(
+	Artist.paginate(
 		{},
 		{
+			sort: 'name',
 			page:page,
 			limit: constants.PAGINATION_LIMIT
 		},
@@ -186,15 +155,15 @@ function getAll(req, res){
 }
 
 function getImage(req, res){
-	var userId = req.params.id;
+	var artistId = req.params.id;
 	
-	if(!userId){
+	if(!artistId){
 		res.status(500).send({message: 'falta el Id del usuario'});
 	}
 		
-	User.findById(userId, function(err, userStored){
+	Artist.findById(artistId, function(err, artistStored){
 		if(!err){
-			var pathFile = constants.PATH_FILE_USER + userStored.image;
+			var pathFile = constants.PATH_FILE_ARTIST + artistStored.image;
 			console.log('pathFile: ' + pathFile);
 			fs.exists(pathFile , function(exists){
 				console.log('exists: ' + exists);
@@ -209,13 +178,13 @@ function getImage(req, res){
 			res.status(500).send({message: 'Error al recuperar datos'});
 		}
 	});
-}	
-	
+}
+
 module.exports = {
 	save,
 	update,
 	uploadImage,
-	getById,
+	getImage,
 	getAll,
-	getImage
+	getById
 };

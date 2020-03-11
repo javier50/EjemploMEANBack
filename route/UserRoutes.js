@@ -14,8 +14,9 @@ var api = express.Router();
 
 api.post('/save', authenticateMD.isAuthenticated, userController.save);
 api.put('/update/:id', authenticateMD.isAuthenticated, userController.update);
-api.get('/show/:id', authenticateMD.isAuthenticated, userController.show);
 api.post('/uploadImage/:id', [authenticateMD.isAuthenticated, uploadMD], userController.uploadImage);
+api.get('/getById/:id', authenticateMD.isAuthenticated, userController.getById);
 api.get('/getImage/:id', authenticateMD.isAuthenticated, userController.getImage);
+api.get('/getAll/:page?', authenticateMD.isAuthenticated, userController.getAll);
 
 module.exports = api;

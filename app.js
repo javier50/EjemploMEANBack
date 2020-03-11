@@ -7,14 +7,17 @@ app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 
 // cargar rutas
-var userRoute = require('./route/UserRoutes');
 var generalRoute = require('./route/GeneralRoutes');
+var artistRoute = require('./route/ArtistRoutes');
+var userRoute = require('./route/UserRoutes');
+
 
 // configurar cabeceras http
 
 
 // ruta base midlwere
 app.use('', generalRoute);
+app.use('/artista', artistRoute);
 app.use('/usuarios', userRoute);
 
 
