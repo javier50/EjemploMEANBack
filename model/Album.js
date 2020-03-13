@@ -8,7 +8,7 @@ var schema = mongoose.Schema({
 	description: String,
 	year: Number,
 	image: String,
-	artist: {type: Schema.ObjectId, ref: 'Artist'}
+	artist: {type: mongoose.Schema.ObjectId, ref: 'Artist'}
 });
 
 schema.plugin(mongoosePaginate);

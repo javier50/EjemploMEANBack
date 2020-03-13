@@ -8,6 +8,7 @@ app.use(express.json());
 
 // cargar rutas
 var generalRoute = require('./route/GeneralRoutes');
+var albumRoute = require('./route/AlbumRoutes');
 var artistRoute = require('./route/ArtistRoutes');
 var userRoute = require('./route/UserRoutes');
 
@@ -17,6 +18,7 @@ var userRoute = require('./route/UserRoutes');
 
 // ruta base midlwere
 app.use('', generalRoute);
+app.use('/album', albumRoute);
 app.use('/artista', artistRoute);
 app.use('/usuarios', userRoute);
 

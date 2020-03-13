@@ -163,6 +163,10 @@ function getImage(req, res){
 		
 	Artist.findById(artistId, function(err, artistStored){
 		if(!err){
+			if(!artistStored){
+				return res.status(400).send({message: 'No se encontro el registro'});
+			}
+
 			var pathFile = constants.PATH_FILE_ARTIST + artistStored.image;
 			console.log('pathFile: ' + pathFile);
 			fs.exists(pathFile , function(exists){

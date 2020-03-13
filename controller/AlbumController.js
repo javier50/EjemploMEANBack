@@ -3,65 +3,39 @@
 var fs = require('fs'); // FileSystem
 var path = require('path'); // Facilita el acceso a rutas concretas
 var bcrypt = require('bcryptjs');
-var User = require('../model/User');
+var Album = require('../model/Album');
+var Song = require('../model/Song');
 var constants = require('../util/Constants');
 
 function save(req, res){
-	var user = new User();
+	var album = new Album();
 	var params = req.body;
 	
-	if(!params.password){
-		res.status(400).send({
-			message: 'Introduce la contraseña'
-		});
-	} else if(!params.name && !params.surname){
+	if(!params.tittle && !params.year){
 		res.status(400).send({
 			message: 'Introducir los campos necesarios'
 		});
 	} else {
 		console.log(params);
-		user.name = params.name;
-		user.surname = params.surname;
-		user.email = params.email;
-		//user.password = params.password;
-		user.role = 'ROLE_USER';
-		user.image = 'null';
-		
-		console.log('generate a salt...');
-		bcrypt.genSalt(10, function(err, salt) {
-			if (!err) {
-				console.log('generate hash...');
-				bcrypt.hash(params.password, salt, function(error, hash) {
-					if (!error) {
-						console.log('hash: ' + hash);
-						user.password = hash;
-						
-						user.save((err, userStored) => {
-							if(!err){
-								if(userStored){
-									console.log('userStored:' + userStored);
-									res.status(200).send({
-										message: 'Se ha guardado el registro',
-										user: userStored
-									});
-								} else {
-									res.status(500).send({message: 'No se guardo el registro'});
-								}
-							} else {
-								console.error(err.stack || err);
-								res.status(err.response.status);
-								res.send(err.message);
-							}
-						});
-					} else {
-						console.error(err.stack || err);
-						res.status(err.response.status);
-						res.send(err.message);
-					}
-				});
+		album.tittle = params.tittle;
+		album.description = params.description;
+		album.year = params.year;
+		album.image = 'null';
+		album.artist = params.artistId;
+		album.save((err, albumStored) => {
+			if(!err){
+				if(albumStored){
+					console.log('albumStored:' + albumStored);
+					res.status(200).send({
+						message: 'Se ha guardado el registro',
+						album: albumStored
+					});
+				} else {
+					res.status(500).send({message: 'No se guardo el registro'});
+				}
 			} else {
 				console.error(err.stack || err);
-				res.status(err.response.status)
+				res.status(err.response.status);
 				res.send(err.message);
 			}
 		});
@@ -69,17 +43,17 @@ function save(req, res){
 }
 
 function update(req, res){
-	var userId = req.params.id;
+	var albumId = req.params.id;
 	var params = req.body;
 	
-	if(!userId){
+	if(!albumId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
 		
-	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
+	Album.findByIdAndUpdate(albumId, params, function(err, albumUpdated){
 		if(!err){
-			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+			if(albumUpdated){
+				res.status(200).send({albumOld: albumUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
 			}			
@@ -92,7 +66,7 @@ function update(req, res){
 
 function uploadImage(req, res){
 	console.log(req.files);
-	var userId = req.params.id;
+	var albumId = req.params.id;
 	
 	if(!req.files){
 		return res.status(400).send({message: 'No ha cargado ningún archivo'});
@@ -116,12 +90,12 @@ function uploadImage(req, res){
 		return res.status(400).send({message: 'No es un archivo valido'});
 	}
 	
-	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
+	Album.findByIdAndUpdate(albumId, params, function(err, albumUpdated){
 		if(!err){
-			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+			if(albumUpdated){
+				res.status(200).send({albumOld: albumUpdated});
 			} else {
-				console.log(userUpdated);
+				console.log(albumUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});
 			}			
 		} else {
@@ -131,17 +105,75 @@ function uploadImage(req, res){
 	});
 }
 
-function getById(req, res){
-	var userId = req.params.id;
+function deleteById(req, res){
+	var albumId = req.params.id;
+	var params = req.body;
+	var totalSongs = 0;
 	
-	if(!userId){
+	if(!albumId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
 		
-	User.findById(userId, function(err, userStored){
+	Album.findById(albumId).remove(function(err, albumRemovedStatus){
 		if(!err){
-			if(userStored){
-				res.status(200).send({user: userStored});
+			if(albumRemovedStatus){
+				Song.count({album: albumId}, function(err, count){
+					if(err){
+						console.error(err.stack || err);
+						return res.status(500).send({message: 'Hubo un error al contar los registros'});
+					}
+					totalSongs = count;
+				});
+
+				if(totalSongs == 0){
+					return res.status(200).send({
+						message: 'El registro se elimino',
+						albumRemovedStatus: albumRemovedStatus,
+						songRemovedStatus: {
+						        "n": 0,
+								"ok": 1,
+								"deletedCount": 0
+						}
+					});
+				}
+
+				Song.find({album: albumId}).remove(function(err, songRemovedStatus){
+					if(!err){
+						if(songRemoved){
+							res.status(200).send({
+								message: 'El registro se elimino',
+								albumRemovedStatus: albumRemovedStatus,
+								songRemovedStatus: songRemovedStatus
+							});
+						} else {
+							res.status(200).send({message: 'El registro no se ha podido eliminar'});
+						}
+					} else {
+						console.error(err.stack || err);
+						res.status(500).send({message: 'Error al intentar eliminar el registro'});
+					}
+				});
+			} else {
+				res.status(200).send({message: 'El registro no se ha podido eliminar'});
+			}
+		} else {
+			console.error(err.stack || err);
+			res.status(500).send({message: 'Error al intentar eliminar el registro'});
+		}
+	});
+}
+
+function getById(req, res){
+	var albumId = req.params.id;
+	
+	if(!albumId){
+		res.status(500).send({message: 'falta el Id del registro'});
+	}
+		
+	Album.findById(albumId, function(err, albumStored){
+		if(!err){
+			if(albumStored){
+				res.status(200).send({album: albumStored});
 			} else {
 				res.status(200).send({message: 'No se ha podido recuperar el registro'});
 			}			
@@ -159,7 +191,7 @@ function getAll(req, res){
 		page = 1;
 	}
 	
-	User.paginate(
+	Album.paginate(
 		{},
 		{
 			page:page,
@@ -177,7 +209,7 @@ function getAll(req, res){
 			
 			return res.status(200).send({
 				total: itemList.totalDocs,
-				users: itemList.docs,
+				albums: itemList.docs,
 				limit: itemList.limit,
 				page: itemList.page
 			});
@@ -186,19 +218,19 @@ function getAll(req, res){
 }
 
 function getImage(req, res){
-	var userId = req.params.id;
+	var albumId = req.params.id;
 	
-	if(!userId){
+	if(!albumId){
 		res.status(500).send({message: 'falta el Id del usuario'});
 	}
 		
-	User.findById(userId, function(err, userStored){
+	Album.findById(albumId, function(err, albumStored){
 		if(!err){
-			if(!userStored){
+			if(!albumStored){
 				return res.status(400).send({message: 'No se encontro el registro'});
 			}
-
-			var pathFile = constants.PATH_FILE_USER + userStored.image;
+			
+			var pathFile = constants.PATH_FILE_ALBUM + albumStored.image;
 			console.log('pathFile: ' + pathFile);
 			fs.exists(pathFile , function(exists){
 				console.log('exists: ' + exists);
@@ -219,6 +251,7 @@ module.exports = {
 	save,
 	update,
 	uploadImage,
+	deleteById,
 	getById,
 	getAll,
 	getImage
