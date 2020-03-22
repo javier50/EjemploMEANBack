@@ -6,7 +6,7 @@ var mongoosePaginate = require('mongoose-paginate-v2');
 var schema = mongoose.Schema({
 	number: String,
 	name: String,
-	duration: Number,
+	duration: String,
 	file: String,
 	album: {type: mongoose.Schema.ObjectId, ref: 'Album'}
 });

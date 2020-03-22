@@ -10,6 +10,7 @@ app.use(express.json());
 var generalRoute = require('./route/GeneralRoutes');
 var albumRoute = require('./route/AlbumRoutes');
 var artistRoute = require('./route/ArtistRoutes');
+var songRoute = require('./route/SongRoutes');
 var userRoute = require('./route/UserRoutes');
 
 
@@ -20,6 +21,7 @@ var userRoute = require('./route/UserRoutes');
 app.use('', generalRoute);
 app.use('/album', albumRoute);
 app.use('/artista', artistRoute);
+app.use('/cancion', songRoute);
 app.use('/usuarios', userRoute);
 
 
