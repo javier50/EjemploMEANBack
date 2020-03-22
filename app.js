@@ -14,18 +14,23 @@ var songRoute = require('./route/SongRoutes');
 var userRoute = require('./route/UserRoutes');
 
 
-// configurar cabeceras http
-
+// configurar cabeceras http (CORS)
+app.use((req, res, next) =>{
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+	res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+	next();
+});
 
 // ruta base midlwere
 app.use('', generalRoute);
 app.use('/album', albumRoute);
 app.use('/artista', artistRoute);
 app.use('/cancion', songRoute);
-app.use('/usuarios', userRoute);
+app.use('/usuario', userRoute);
 
 
-app.get('/pruebas', function(req, res){
+app.get('/prueba', function(req, res){
 	res.status(200).send({menssage: 'Mensaje de respuesta'});
 });
 
