@@ -9,7 +9,7 @@ var constants = require('../util/Constants');
 function save(req, res){
 	var user = new User();
 	var params = req.body;
-	
+
 	if(!params.password){
 		res.status(400).send({
 			message: 'Introduce la contraseña'
@@ -26,7 +26,7 @@ function save(req, res){
 		//user.password = params.password;
 		user.role = 'ROLE_USER';
 		user.image = 'null';
-		
+
 		console.log('generate a salt...');
 		bcrypt.genSalt(10, function(err, salt) {
 			if (!err) {
@@ -35,7 +35,7 @@ function save(req, res){
 					if (!error) {
 						console.log('hash: ' + hash);
 						user.password = hash;
-						
+
 						user.save((err, userStored) => {
 							if(!err){
 								if(userStored){
@@ -71,18 +71,18 @@ function save(req, res){
 function update(req, res){
 	var userId = req.params.id;
 	var params = req.body;
-	
+
 	if(!userId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
-		
+
 	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
 		if(!err){
 			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+				res.status(200).send({oldUser: userUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al actualizar datos'});
@@ -93,37 +93,40 @@ function update(req, res){
 function uploadImage(req, res){
 	console.log(req.files);
 	var userId = req.params.id;
-	
+
 	if(!req.files){
 		return res.status(400).send({message: 'No ha cargado ningún archivo'});
 	}
-	
+
 	// nombre del archivo
 	var file_path = req.files.image.path;
 	var file_split = file_path.split('\\');
 	var file_name = file_split[2];
 	console.log('file_name: ' + file_name);
-	
+
 	// extencion del archivo
 	var ext_split = file_path.split('.');
 	var ext_file = ext_split[1];
-	
+
 	var params = {
 		image : file_name
 	};
-	
+
 	if(!(ext_file == 'png' || ext_file == 'jpg' || ext_file == 'gif')) {
 		return res.status(400).send({message: 'No es un archivo valido'});
 	}
-	
+
 	User.findByIdAndUpdate(userId, params, function(err, userUpdated){
 		if(!err){
 			if(userUpdated){
-				res.status(200).send({userOld: userUpdated});
+				res.status(200).send({
+					image: file_name,
+					oldUser: userUpdated
+				});
 			} else {
 				console.log(userUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al actualizar datos'});
@@ -133,18 +136,18 @@ function uploadImage(req, res){
 
 function getById(req, res){
 	var userId = req.params.id;
-	
+
 	if(!userId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
-		
+
 	User.findById(userId, function(err, userStored){
 		if(!err){
 			if(userStored){
 				res.status(200).send({user: userStored});
 			} else {
 				res.status(200).send({message: 'No se ha podido recuperar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al recuperar datos'});
@@ -154,11 +157,11 @@ function getById(req, res){
 
 function getAll(req, res){
 	var page = req.params.page;
-	
+
 	if(!page){
 		page = 1;
 	}
-	
+
 	User.paginate(
 		{},
 		{
@@ -170,11 +173,11 @@ function getAll(req, res){
 				console.error(err.stack || err);
 				return res.status(500).send({message: 'Error al recuperar datos'});
 			}
-			
+
 			if(!itemList) {
 				return res.status(400).send({message: 'No hay registros'});
 			}
-			
+
 			return res.status(200).send({
 				total: itemList.totalDocs,
 				users: itemList.docs,
@@ -187,11 +190,11 @@ function getAll(req, res){
 
 function getImage(req, res){
 	var userId = req.params.id;
-	
+
 	if(!userId){
 		res.status(500).send({message: 'falta el Id del usuario'});
 	}
-		
+
 	User.findById(userId, function(err, userStored){
 		if(!err){
 			if(!userStored){
@@ -213,8 +216,8 @@ function getImage(req, res){
 			res.status(500).send({message: 'Error al recuperar datos'});
 		}
 	});
-}	
-	
+}
+
 module.exports = {
 	save,
 	update,

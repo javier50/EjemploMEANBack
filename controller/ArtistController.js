@@ -9,11 +9,11 @@ var constants = require('../util/Constants');
 function save(req, res){
 	var artist = new Artist();
 	var params = req.body;
-	
+
 	if(!params.name){
 		return res.status(200).send({message: 'Introducir los campos necesarios'});
 	}
-	
+
 	artist.name = params.name;
 	artist.description = params.description;
 	artist.image = 'null';
@@ -39,18 +39,18 @@ function save(req, res){
 function update(req, res){
 	var artistId = req.params.id;
 	var params = req.body;
-	
+
 	if(!artistId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
-		
+
 	Artist.findByIdAndUpdate(artistId, params, function(err, artistUpdated){
 		if(!err){
 			if(artistUpdated){
-				res.status(200).send({artistOld: artistUpdated});
+				res.status(200).send({oldArtist: artistUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al actualizar datos'});
@@ -61,37 +61,37 @@ function update(req, res){
 function uploadImage(req, res){
 	console.log(req.files);
 	var artistId = req.params.id;
-	
+
 	if(!req.files){
 		return res.status(400).send({message: 'No ha cargado ningún archivo'});
 	}
-	
+
 	// nombre del archivo
 	var file_path = req.files.image.path;
 	var file_split = file_path.split('\\');
 	var file_name = file_split[2];
 	console.log('file_name: ' + file_name);
-	
+
 	// extencion del archivo
 	var ext_split = file_path.split('.');
 	var ext_file = ext_split[1];
-	
+
 	var params = {
 		image : file_name
 	};
-	
+
 	if(!(ext_file == 'png' || ext_file == 'jpg' || ext_file == 'gif')) {
 		return res.status(400).send({message: 'No es un archivo valido'});
 	}
-	
+
 	Artist.findByIdAndUpdate(artistId, params, function(err, artistUpdated){
 		if(!err){
 			if(artistUpdated){
-				res.status(200).send({artistOld: artistUpdated});
+				res.status(200).send({oldArtist: artistUpdated});
 			} else {
 				console.log(artistUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al actualizar datos'});
@@ -101,18 +101,18 @@ function uploadImage(req, res){
 
 function getById(req, res){
 	var artistId = req.params.id;
-	
+
 	if(!artistId){
 		res.status(500).send({message: 'falta el Id del registro'});
 	}
-		
+
 	Artist.findById(artistId, function(err, artistStored){
 		if(!err){
 			if(artistStored){
 				res.status(200).send({artist: artistStored});
 			} else {
 				res.status(200).send({message: 'No se ha podido recuperar el registro'});
-			}			
+			}
 		} else {
 			console.error(err.stack || err);
 			res.status(500).send({message: 'Error al recuperar datos'});
@@ -122,11 +122,11 @@ function getById(req, res){
 
 function getAll(req, res){
 	var page = req.params.page;
-	
+
 	if(!page){
 		page = 1;
 	}
-	
+
 	Artist.paginate(
 		{},
 		{
@@ -139,11 +139,11 @@ function getAll(req, res){
 				console.error(err.stack || err);
 				return res.status(500).send({message: 'Error al recuperar datos'});
 			}
-			
+
 			if(!itemList) {
 				return res.status(400).send({message: 'No hay registros'});
 			}
-			
+
 			return res.status(200).send({
 				total: itemList.totalDocs,
 				users: itemList.docs,
@@ -156,11 +156,11 @@ function getAll(req, res){
 
 function getImage(req, res){
 	var artistId = req.params.id;
-	
+
 	if(!artistId){
 		res.status(500).send({message: 'falta el Id del usuario'});
 	}
-		
+
 	Artist.findById(artistId, function(err, artistStored){
 		if(!err){
 			if(!artistStored){

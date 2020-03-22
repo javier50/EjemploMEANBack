@@ -53,7 +53,7 @@ function update(req, res){
 	Album.findByIdAndUpdate(albumId, params, function(err, albumUpdated){
 		if(!err){
 			if(albumUpdated){
-				res.status(200).send({albumOld: albumUpdated});
+				res.status(200).send({oldAlbum: albumUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
 			}
@@ -93,7 +93,7 @@ function uploadImage(req, res){
 	Album.findByIdAndUpdate(albumId, params, function(err, albumUpdated){
 		if(!err){
 			if(albumUpdated){
-				res.status(200).send({albumOld: albumUpdated});
+				res.status(200).send({oldAlbum: albumUpdated});
 			} else {
 				console.log(albumUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});

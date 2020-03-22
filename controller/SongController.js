@@ -52,7 +52,7 @@ function update(req, res){
 	Song.findByIdAndUpdate(songId, params, function(err, songUpdated){
 		if(!err){
 			if(songUpdated){
-				res.status(200).send({songOld: songUpdated});
+				res.status(200).send({oldSong: songUpdated});
 			} else {
 				res.status(200).send({message: 'No se ha podido actualizar el registro'});
 			}
@@ -92,7 +92,7 @@ function uploadFile(req, res){
 	Song.findByIdAndUpdate(songId, params, function(err, songUpdated){
 		if(!err){
 			if(songUpdated){
-				res.status(200).send({songOld: songUpdated});
+				res.status(200).send({oldSong: songUpdated});
 			} else {
 				console.log(songUpdated);
 				res.status(500).send({message: 'No se ha podido actualizar el registro'});
@@ -221,7 +221,7 @@ function getFile(req, res){
 	var songId = req.params.id;
 
 	if(!songId){
-		res.status(500).send({message: 'falta el Id del usuario'});
+		res.status(500).send({message: 'falta el Id del registro'});
 	}
 
 	Song.findById(songId, function(err, songStored){
